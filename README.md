@@ -21,6 +21,4 @@ Built with production-grade security practices to ensure data integrity:
 
 
 
-   GOOGLE_CLIENT_ID="your_oauth_id"
-   GOOGLE_CLIENT_SECRET="your_oauth_secret"
-   DATABASE_URL="your_supabase_url"
+  
