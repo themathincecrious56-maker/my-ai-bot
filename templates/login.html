@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heritage Workspace Gateway</title>
+    <!-- 🌐 Premium Cloud Font Infrastructure Engine -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Odia:wght@500;700&family=Noto+Sans+Tamil:wght@500;700&family=Noto+Sans+Malayalam:wght@500;700&family=Noto+Sans+Telugu:wght@500;700&family=Noto+Sans+Kannada:wght@500;700&family=Noto+Sans+Gujarati:wght@500;700&family=Noto+Sans+Bengali:wght@500;700&family=Noto+Sans:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #12100E; color: #E6DFD3; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; overflow-y: auto; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .login-card { 
+    background: #1C1917; 
+    width: 96%; 
+    max-width: 1150px; 
+    padding: 50px 4%; 
+    border-radius: 28px; 
+    border: 1px solid rgba(192, 108, 76, 0.15); 
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7); 
+    position: relative; 
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+        .login-header-actions { display: flex; justify-content: flex-end; margin-bottom: 25px; width: 100%; }
+        
+        .lang-switcher-wrapper { display: flex; align-items: center; gap: 8px; background: #262320; padding: 8px 18px; border-radius: 24px; border: 1px solid rgba(192, 108, 76, 0.25); }
+        .globe-icon { width: 18px; height: 18px; fill: #C06C4C; }
+        #lang-selector { background: transparent; border: none; color: #E6DFD3; font-size: 1.05rem; font-weight: 600; outline: none; cursor: pointer; }
+        #lang-selector option { background: #262320; color: #E6DFD3; }
+
+        h2 { font-weight: 600; font-size: 2.4rem; color: #E6DFD3; margin-bottom: 10px; text-align: center; transition: all 0.2s ease; letter-spacing: -0.5px; }
+        p.subtitle { color: #C06C4C; font-size: 1.05rem; margin-bottom: 45px; letter-spacing: 1.5px; text-align: center; font-weight: 600; }
+        .gateway-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
+
+        @media(min-width: 768px) {
+            .gateway-grid { grid-template-columns: 1fr 1fr; align-items: stretch; text-align: left; }
+            .vertical-divider { border-right: 1px solid rgba(230, 223, 211, 0.1); padding-right: 40px; display: flex; flex-direction: column; justify-content: center; }
+        }
+
+        .form-group { margin-bottom: 28px; text-align: left; }
+        label { display: block; font-size: 1.15rem; font-weight: 600; color: rgba(230, 223, 211, 0.85); margin-bottom: 12px; padding-left: 16px; transition: all 0.2s ease; }
+        .input-field { width: 100%; background: #12100E; border: 1px solid rgba(230, 223, 211, 0.15); border-radius: 35px; padding: 18px 26px; color: #E6DFD3; outline: none; font-size: 1.25rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 60px; }
+        .input-field:focus { border-color: #C06C4C; box-shadow: 0 0 0 4px rgba(192, 108, 76, 0.15); }
+        
+        .primary-login-btn { width: 100%; background: #C06C4C; color: #12100E; border: none; padding: 18px; border-radius: 35px; font-weight: 700; font-size: 1.25rem; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 14px rgba(192, 108, 76, 0.25); transition: all 0.2s ease; }
+        .primary-login-btn:hover { background: #D67C5B; transform: translateY(-1px); }
+        
+        .social-area { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+        .social-label { font-size: 1.15rem; font-weight: 600; color: rgba(230, 223, 211, 0.6); margin-bottom: 14px; text-align: center; transition: all 0.2s ease; }
+        .oauth-row-btn { width: 100%; background: #262320; border: 1px solid rgba(230, 223, 211, 0.08); padding: 16px 26px; border-radius: 35px; cursor: pointer; font-size: 1.2rem; color: #E6DFD3; font-weight: 600; display: flex; align-items: center; justify-content: flex-start; gap: 18px; transition: all 0.2s ease; min-height: 58px; }
+        .oauth-row-btn:hover { background: #322e2a; border-color: #C06C4C; }
+        .oauth-icon { width: 24px; height: 24px; fill: #E6DFD3; }
+
+        /* ==========================================================================
+           🎨 THE 7 REGIONAL LINGUISTIC DESIGN PROPERTY OVERRIDES
+           ========================================================================== */
+
+        /* 1. Hindi, Marathi, Punjabi: Linear Shirorekha Suite */
+        .script-north-shirorekha h2 { font-family: 'Noto Sans', sans-serif !important; font-size: 2.7rem !important; font-weight: 700 !important; }
+        .script-north-shirorekha label { font-size: 1.3rem !important; }
+        .script-north-shirorekha .input-field { font-family: 'Noto Sans', sans-serif !important; font-size: 1.5rem !important; padding: 22px 28px !important; min-height: 68px !important; line-height: 1.8 !important; }
+        .script-north-shirorekha .oauth-row-btn { font-family: 'Noto Sans', sans-serif !important; font-size: 1.35rem !important; padding: 18px 28px !important; }
+
+        /* 2. Bengali, Assamese: Sharp Horizontal Suite */
+        .script-east-sharps h2 { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 2.8rem !important; font-weight: 700 !important; letter-spacing: 0.5px !important; }
+        .script-east-sharps label { font-size: 1.35rem !important; }
+        .script-east-sharps .input-field { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 1.55rem !important; padding: 22px 30px !important; min-height: 70px !important; letter-spacing: 0.4px !important; }
+        .script-east-sharps .oauth-row-btn { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 1.4rem !important; min-height: 64px !important; }
+
+        /* 3. ODIA MASTER SUITE - Dynamic Shadow Multiplier Engine (Perfect Hollow Loops) */
+        .script-odia-supreme h2 { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 3.1rem !important; font-weight: 700 !important; line-height: 1.6 !important; letter-spacing: 1.0px !important; text-shadow: 0.4px 0.4px 0px #E6DFD3; }
+        .script-odia-supreme label { font-size: 1.5rem !important; font-weight: 700 !important; margin-bottom: 16px !important; text-shadow: 0.3px 0.3px 0px #E6DFD3; }
+        .script-odia-supreme .input-field { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 1.85rem !important; font-weight: 700 !important; padding: 26px 34px !important; min-height: 84px !important; line-height: 2.6 !important; letter-spacing: 1.4px !important; border-radius: 42px !important; text-shadow: 0.4px 0.4px 0px #E6DFD3, -0.3px -0.3px 0px #E6DFD3; }
+        .script-odia-supreme .oauth-row-btn { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 1.55rem !important; font-weight: 700 !important; padding: 24px 30px !important; min-height: 78px !important; border-radius: 40px !important; letter-spacing: 1.2px !important; text-shadow: 0.3px 0.3px 0px #E6DFD3; }
+        .script-odia-supreme .social-label { font-size: 1.4rem !important; font-weight: 700 !important; line-height: 1.8 !important; text-shadow: 0.3px 0.3px 0px rgba(230, 223, 211, 0.6); }
+        .script-odia-supreme p.subtitle { font-size: 1.2rem !important; font-weight: 700 !important; }
+
+        /* 4. Gujarati: Elastic Widescreen Framework */
+        .script-gujarati-elastic h2 { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 2.9rem !important; font-weight: 700 !important; }
+        .script-gujarati-elastic label { font-size: 1.35rem !important; }
+        .script-gujarati-elastic .input-field { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 1.6rem !important; padding: 22px 30px !important; min-height: 72px !important; letter-spacing: 0.5px !important; }
+        .script-gujarati-elastic .oauth-row-btn { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 1.4rem !important; min-height: 66px !important; }
+
+        /* 5. Telugu: Carved Dynamic Interlocking Suite */
+        .script-telugu-carved h2 { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 3.0rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
+        .script-telugu-carved label { font-size: 1.45rem !important; font-weight: 700 !important; }
+        .script-telugu-carved .input-field { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 1.75rem !important; font-weight: 700 !important; padding: 26px 32px !important; min-height: 80px !important; line-height: 2.3 !important; border-radius: 40px !important; }
+        .script-telugu-carved .oauth-row-btn { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 1.5rem !important; font-weight: 700 !important; min-height: 74px !important; border-radius: 38px !important; }
+
+        /* 6. Kannada: Prominent Top Accent Suite */
+        .script-kannada-top h2 { font-family: 'Noto Sans Kannada', sans-serif !important; font-size: 2.9rem !important; font-weight: 700 !important; line-height: 1.5 !important; }
+        .script-kannada-top label { font-size: 1.4rem !important; font-weight: 700 !important; }
+        .script-kannada-top .input-field { font-family: 'Noto Sans Kannada', sans-serif !important; font-size: 1.7rem !important; font-weight: 700 !important; padding: 24px 30px !important; min-height: 76px !important; line-height: 2.2 !important; border-radius: 38px !important; }
+
+        /* 7. Tamil & Malayalam South-Grid Suite */
+        .script-south-flat h2 { font-family: 'Noto Sans Tamil', sans-serif !important; font-size: 2.7rem !important; font-weight: 700 !important; }
+        .script-south-flat label { font-size: 1.35rem !important; font-weight: 700 !important; }
+        .script-south-flat .input-field { font-family: 'Noto Sans Tamil', sans-serif !important; font-size: 1.6rem !important; padding: 22px 28px !important; min-height: 72px !important; line-height: 1.9 !important; }
+        
+        .script-south-flat[data-lang="Malayalam"] h2 { font-family: 'Noto Sans Malayalam', sans-serif !important; font-size: 2.75rem !important; }
+        .script-south-flat[data-lang="Malayalam"] .input-field { font-family: 'Noto Sans Malayalam', sans-serif !important; font-size: 1.65rem !important; line-height: 2.1 !important; }
+    </style>
+</head>
+<body>
+
+<div class="login-card" id="main-card">
+    <div class="login-header-actions">
+        <div class="lang-switcher-wrapper">
+            <svg class="globe-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7.06-3.6-7.55-7.55H7c.05 1.75.43 3.38 1.04 4.84L6.12 19.1c1.23.63 2.61.9 4.88.83zm-1-7.93H4.06c.49-3.95 3.6-7.06 7.55-7.55v3.66c-1.75.05-3.38.43-4.84 1.04l1.93 1.93C8.62 10.3 8.9 11.12 9 12zm2-7.93c3.95.49 7.06 3.6 7.55 7.55H17c-.05-1.75-.43-3.38-1.04-4.84l1.92-1.92c-1.23-.62-2.61-.89-4.88-.79zM15 12c-.08-.88-.36-1.7-.84-2.41l1.93-1.93c.61 1.46.99 3.09 1.04 4.84H15zm-2 7.93V16.3c1.75-.05 3.38-.43 4.84-1.04l-1.93-1.93c-.42.71-.7 1.53-.91 2.41-.49 3.95-3.6 7.06-7.55 7.55zM12 4.5c.83 0 1.62.67 2.14 1.83C13.43 7.42 12.74 8.61 12.24 10H11.76c-.5-1.39-1.19-2.58-1.9-3.67.52-1.16 1.31-1.83 2.14-1.83zm-1.88 7.5c.08.88.36 1.7.84 2.41l-1.93 1.93c-.61-1.46-.99-3.09-1.04-4.84h2.13zm1.88 7.5c-.83 0-1.62-.67-2.14-1.83.71-1.09 1.4-2.28 1.9-3.67h.48c.5 1.39 1.19 2.58 1.9 3.67-.52 1.16-1.31 1.83-2.14 1.83zm1.24-5.5c-.08-.88-.36-1.7-.84-2.41h.48c.5 1.39 1.19 2.58 1.9 3.67l-1.93 1.93c-.42-.71-.7-1.53-.91-2.41z"/></svg>
+            <select id="lang-selector" onchange="applyLoginLocalization()">
+                <option value="English">English</option>
+                <option value="Hindi">हिन्दी (Hindi)</option>
+                <option value="Marathi">मराठी (Marathi)</option>
+                <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="Tamil">தமிழ் (Tamil)</option>
+                <option value="Telugu">తెలుగు (Telugu)</option>
+                <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                <option value="Malayalam">മലയാളം (Malayalam)</option>
+                <option value="Assamese">অসমীয়া (Assamese)</option>
+                <option value="Bengali">বাংলা (Bengali)</option>
+            </select>
+        </div>
+    </div>
+
+    <h2 id="lbl-main-title">Access AI Core</h2>
+    <p class="subtitle" id="lbl-subtitle">HERITAGE WORKSPACE GATEWAY</p>
+    
+    <div class="gateway-grid">
+
+
+
+
+       <div class="vertical-divider">
+    <!-- Wrap inputs in a form pointing to our new Python route -->
+    <form action="/manual-login" method="POST">
+        <div class="form-group">
+            <label id="lbl-username">Identity / Username</label>
+            <input type="text" name="username" id="input-user" class="input-field" placeholder="Enter username..." required>
+        </div>
+        <div class="form-group">
+            <label id="lbl-password">Access Token / Password</label>
+            <input type="password" name="password" id="input-pass" class="input-field" placeholder="Enter password..." required>
+        </div>
+        <button type="submit" class="primary-login-btn" id="lbl-auth-btn">Authenticate Core</button>
+    </form>
+</div>
+        
+        
+        <div class="social-area">
+            <div class="social-label" id="lbl-social-title">Secure Cloud Authentication Paths</div>
+
+            <a href="/login" style="text-decoration: none; width: 100%;">
+    <button type="button" class="oauth-row-btn">
+        <svg class="oauth-icon" viewBox="0 0 24 24">
+            <path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.033 1 1.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.986 0-.745-.078-1.32-.176-1.894H12.24z"/>
+        </svg>
+        <span id="lbl-google">Continue with Google</span>
+    </button>
+</a>
+
+<button class="oauth-row-btn" onclick="simulateOAuth('Meta')"><svg class="oauth-icon" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10...</button>
+            <button class="oauth-row-btn" onclick="simulateOAuth('Meta')"><svg class="oauth-icon" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12z"/></svg><span id="lbl-meta">Continue with Meta</span></button>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+    const loginLanguagePack = {
+        English: { title: "Access AI Core", subtitle: "HERITAGE WORKSPACE GATEWAY", user: "Identity / Username", userPlh: "Enter username...", pass: "Access Token / Password", passPlh: "Enter password...", auth: "Authenticate Core", social: "Secure Cloud Authentication Paths", google: "Continue with Google", meta: "Continue with Meta", x: "Continue with X (Twitter)", apple: "Continue with Apple" },
+        Hindi: { title: "एआई कोर तक पहुंचें", subtitle: "धरोहर वर्कस्पेस गेटवे", user: "पहचान / उपयोगकर्ता नाम", userPlh: "उपयोगकर्ता नाम दर्ज करें...", pass: "एक्सेस टोकन / पासवर्ड", passPlh: "पासवर्ड दर्ज करें...", auth: "कोर प्रमाणित करें", social: "सुरक्षित क्लाउड प्रमाणीकरण मार्ग", google: "गूगल के साथ जारी रखें", meta: "मेटा के साथ जारी रखें", x: "X के साथ जारी रखें", apple: "एप्पल के साथ जारी रखें" },
+        Marathi: { title: "एआय कोरमध्ये प्रवेश करा", subtitle: "वारसा वर्कस्पेस गेटवे", user: "ओळख / वापरकर्ता नाव", userPlh: "वापरकर्ता नाव टाका...", pass: "प्रवेश टोकन / पासवर्ड", passPlh: "पासवर्ड टाका...", auth: "कोर प्रमाणित करा", social: "सुरक्षित क्लाउड प्रमाणीकरण मार्ग", google: "गुगलसह पुढे जा", meta: "मेटासह पुढे जा", x: "X सह पुढे जा", apple: "एप्पलसह पुढे जा" },
+        Odia: { title: "AI କୋର ପ୍ରବେଶ କରନ୍ତୁ", subtitle: "ଐତିହ୍ୟ ୱର୍କସ୍ପେସ ଗେଟୱେ", user: "ପରିଚୟ / ଉପଭୋକ୍ତା ନାମ", userPlh: "ଉପଭୋକ୍ତା ନାମ ଦିଅନ୍ତୁ...", pass: "ପ୍ରବେଶ ଟୋକନ / ପାସୱାର୍ଡ", passPlh: "ପାସୱାର୍ଡ ଦିଅନ୍ତୁ...", auth: "କୋର ଯାଞ୍ଚ କରନ୍ତୁ", social: "ସୁରକ୍ଷିତ କ୍ଲାଉଡ୍ ପ୍ରମାଣୀକରଣ ପଥ", google: "ଗୁଗଲ୍ ସହିତ ଆଗକୁ ବଢନ୍ତୁ", meta: "ମେଟା ସହିତ ଆଗକୁ ବଢନ୍ତୁ", x: "X ସହିତ ଆଗକୁ ବଢନ୍ତୁ", apple: "ଆପଲ୍ ସହିତ ଆଗକୁ ବଢନ୍ତୁ" },
+        Gujarati: { title: "AI કોર એક્સેસ કરો", subtitle: "ધરોહર વર્કસ્પેસ ગેટવે", user: "ઓળખ / યુઝરનામ", userPlh: "યુઝરનામ દાખલ કરો...", pass: "એક્સેસ ટોકન / પાસવર્ડ", passPlh: "પાસવર્ડ દાખલ કરો...", auth: "કોર પ્રમાણિત કરો", social: "સુરક્ષિત ક્લાઉડ પ્રમાણીકરણ પાથ", google: "ગૂગલ સાથે આગળ વધો", meta: "મેટા સાથે આગળ વધો", x: "X સાથે આગળ વધો", apple: "એપલ સાથે આગળ વધો" },
+        Punjabi: { title: "AI ਕੋਰ ਤੱਕ ਪਹੁੰਚੋ", subtitle: "ਵਿਰਸਾ ਵਰਕਸਪੇਸ ਗੇਟਵੇ", user: "ਪਛਾਣ / ਯੂਜ਼ਰਨਾਮ", userPlh: "ਯੂਜ਼ਰਨਾਮ ਦਰਜ ਕਰੋ...", pass: "ਐਕਸੈਸ ਟੋਕਨ / ਪਾਸਵਰਡ", passPlh: "ਪਾਸਵਰਡ ਦਰਜ ਕਰੋ...", auth: "ਕੋਰ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ", social: "ਸੁਰੱਖਿਅਤ ਕਲਾਉਡ ਪ੍ਰਮਾਣ ਪੱਤਰ", google: "ਗੂਗਲ ਦੇ ਨਾਲ ਅੱਗੇ ਵਧੋ", meta: "ਮੇਟਾ ਦੇ ਨਾਲ ਅੱਗੇ ਵਧੋ", x: "X ਦੇ ਨਾਲ ਅੱਗੇ ਵਧੋ", apple: "ਐਪਲ ਦੇ ਨਾਲ ਅੱਗੇ ਵਧੋ" },
+        Tamil: { title: "AI கோர் அணுகல்", subtitle: "பாரம்பரிய ஒர்க்ஸ்பேஸ் கேட்வே", user: "அடையாளம் / பயனர் பெயர்", userPlh: "பயனர் பெயரை உள்ளிடவும்...", pass: "அணுகல் டோக்கன் / கடவுச்சொல்", passPlh: "கடவுச்சொல்லை உள்ளிடவும்...", auth: "கோர் அங்கீகரிக்கவும்", social: "பாதுகாப்பான கிளவுட் அங்கீகார பாதைகள்", google: "கூகிள் மூலம் தொடரவும்", meta: "மெட்டா மூலம் தொடரவும்", x: "X மூலம் தொடரவும்", apple: "ஆப்பிள் மூலம் தொடரவும்" },
+        Telugu: { title: "AI కోర్ యాక్సెస్ చేయండి", subtitle: "హెరిటేజ్ వర్క్‌స్పేస్ గేట్‌വേ", user: "గుర్తింపు / యూజర్ నేమ్", userPlh: "యూజర్ నేమ్ ఎంటర్ చేయండి...", pass: "యాక్సెస్ టోకెన్ / పాస్‌వర్డ్", passPlh: "పాస్‌వర్డ్ ఎంటర్ చేయండి...", auth: "కోర్ ధృవీకరించు", social: "సురక్షిత క్లౌడ్ ప్రామాణీకరణ మార్గాలు", google: "గూగుల్ తో కొనసాగించండి", meta: "మెటాతో కొనసాగించండి", x: "X తో కొనసాగించండి", apple: "యాపిల్ తో కొనసాగించండి" },
+        Kannada: { title: "AI ਕੋਰ ਪ੍ਰਵೇಶಿಸಿ", subtitle: "ಪರಂಪರೆ ವರ್ಕ್‌స్పೇಸ್ ಗೇಟ್‌വേ", user: "ಗುರುತು / ಬಳಕೆದಾರ ಹೆಸರು", userPlh: "ಬಳಕೆದಾರ ಹೆಸರು ನಮೂದಿಸಿ...", pass: "ಪ್ರವೇಶ ಟೋಕನ್ / ಪಾಸ್‌ವರ್ಡ್", passPlh: "ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ...", auth: "ಕೋರ್ ದೃಢೀಕರಿಸಿ", social: "ಸುರಕ್ಷಿತ ಕ್ಲೌಡ್ ದೃಢೀಕರಣ ಮಾರ್ಗಗಳು", google: "ಗೂಗಲ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ", meta: "ಮೆಟಾದೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ", x: "X ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ", apple: "ಆಪಲ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ" },
+        Malayalam: { title: "AI കോർ ആക്സസ് ചെയ്യുക", subtitle: "പൈതൃക വർക്ക്‌സ്‌പേസ് ഗേറ്റ്‌വേ", user: "തിരിച്ചറിയൽ / ഉപയോക്തൃനാമം", userPlh: "ഉപയോക്തൃനാമം നൽകുക...", pass: "ആക്സസ് ടോക്കൺ / പാസ്‌വേഡ്", passPlh: "പാസ്‌വേഡ് നൽകുക...", auth: "കോർ സാക്ഷ്യപ്പെടുത്തുക", social: "സുരക്ഷാ ക്ലൗഡ് പാതകൾ", google: "ഗൂഗിളിലൂടെ തുടരുക", meta: "മെറ്റയിലൂടെ തുടരുക", x: "X ലൂടെ തുടരുക", apple: "ആപ്പിളിലൂടെ തുടരുക" },
+        Assamese: { title: "AI ক'ৰ এচেম্বলি", subtitle: "ঐতিহ্য ৱৰ্কস্পেচ গেটৱে", user: "পৰিচয় / ব্যৱহাৰকাৰীৰ নাম", userPlh: "নাম লিখক...", pass: "পাছৱৰ্ড", passPlh: "পাছৱৰ্ড লিখক...", auth: "প্ৰমাণিত কৰক", social: "সুৰক্ষিত ক্লাউড প্ৰমাণীকৰণ পথ", google: "গুগলৰ সৈতে আগবাঢ়ক", meta: "মেটাৰ সৈতে আগবাঢ়ক", x: "X ৰ সৈতে আগবাঢ়ক", apple: "এপলৰ সৈতে আগবাঢ়ক" },
+        Bengali: { title: "AI কোর অ্যাক্সেস করুন", subtitle: "ঐতিহ্য ওয়ার্কস্পেস গেটওয়ে", user: "পরিচয় / ব্যবহারকারীর নাম", userPlh: "নাম লিখুন...", pass: "পাসওয়ার্ড", passPlh: "পাসওয়ার্ড লিখুন...", auth: "কোর নিশ্চিত করুন", social: "সুরক্ষিত ক্লাউড প্রমাণীকরণ পথ", google: "গুগল এর সাথে যান", meta: "মেটা এর সাথে যান", x: "X এর সাথে যান", apple: "앱설 এর সাথে যান" }
+    };
+
+    function applyLoginLocalization() {
+        const lang = document.getElementById('lang-selector').value;
+        const pack = loginLanguagePack[lang] || loginLanguagePack.English;
+        const card = document.getElementById('main-card');
+        
+        card.className = "login-card";
+        card.removeAttribute("data-lang");
+
+        if (["Hindi", "Marathi", "Punjabi"].includes(lang)) {
+            card.classList.add("script-north-shirorekha");
+        } else if (["Bengali", "Assamese"].includes(lang)) {
+            card.classList.add("script-east-sharps");
+        } else if (lang === "Odia") {
+            card.classList.add("script-odia-supreme");
+        } else if (lang === "Gujarati") {
+            card.classList.add("script-gujarati-elastic");
+        } else if (lang === "Telugu") {
+            card.classList.add("script-telugu-carved");
+        } else if (lang === "Kannada") {
+            card.classList.add("script-kannada-top");
+        } else if (["Tamil", "Malayalam"].includes(lang)) {
+            card.classList.add("script-south-flat");
+            if(lang === "Malayalam") card.setAttribute("data-lang", "Malayalam");
+        }
+        
+        document.getElementById('lbl-main-title').innerText = pack.title;
+        document.getElementById('lbl-subtitle').innerText = pack.subtitle;
+        document.getElementById('lbl-username').innerText = pack.user;
+        document.getElementById('input-user').placeholder = pack.userPlh;
+        document.getElementById('lbl-password').innerText = pack.pass;
+        document.getElementById('input-pass').placeholder = pack.passPlh;
+        document.getElementById('lbl-auth-btn').innerText = pack.auth;
+        document.getElementById('lbl-social-title').innerText = pack.social;
+        document.getElementById('lbl-google').innerText = pack.google;
+        document.getElementById('lbl-meta').innerText = pack.meta;
+        document.getElementById('lbl-x').innerText = pack.x;
+        document.getElementById('lbl-apple').innerText = pack.apple;
+    }
+
+    function enterWorkspace() { window.location.href = '/workspace'; }
+    function simulateOAuth(provider) {
+        alert("Initializing structural secure OAuth2 handshake with " + provider + ".\nSyncing token keys to your local D drive container...");
+        window.location.href = '/workspace';
+    }
+</script>
+</body>
+</html>

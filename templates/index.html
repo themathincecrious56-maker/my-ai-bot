@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Odia:wght@500;700&family=Noto+Sans+Tamil:wght@500;700&family=Noto+Sans+Malayalam:wght@500;700&family=Noto+Sans+Telugu:wght@500;700&family=Noto+Sans+Kannada:wght@500;700&family=Noto+Sans+Gujarati:wght@500;700&family=Noto+Sans+Bengali:wght@500;700&family=Noto+Sans:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+
+        /* Add this to your index.html <style> block */
+#chat-pane-main {
+    direction: ltr !important; /* Forces text to flow left-to-right, fixing the mirror bug */
+    -webkit-transform: translateZ(0); /* Hardware acceleration for mobile rendering lag */
+}
+
+.message {
+    direction: ltr !important;
+    text-align: left;
+    unicode-bidi: isolate; /* Prevents regional fonts from triggering RTL layout shifts */
+}
+
+/* Fix mobile height collapse */
+@media (max-width: 768px) {
+    #chat-container {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+    #input-area {
+        padding: 12px 16px !important;
+    }
+}
+
+
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #12100E; color: #E6DFD3; display: flex; height: 100vh; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; position: relative; }
+        
+        #workspace-wrapper { display: flex; width: 100vw; height: 100vh; position: relative; }
+
+        /* 💾 COLLAPSIBLE DRAWER SIDEBAR */
+        #sidebar { 
+            width: 290px; 
+            background: #171412; 
+            border-right: 1px solid rgba(192, 108, 76, 0.12); 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            position: absolute;
+            left: -290px; 
+            top: 0;
+            z-index: 2999;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        #sidebar.open {
+            transform: translateX(290px); 
+        }
+        .sidebar-header { padding: 22px 24px; font-size: 1.1rem; font-weight: 700; color: #C06C4C; border-bottom: 1px solid rgba(230, 223, 211, 0.05); letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .close-sidebar-btn { background: transparent; border: none; color: #E6DFD3; font-size: 1.4rem; cursor: pointer; }
+        #history-timeline-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        #history-timeline-box::-webkit-scrollbar { width: 4px; }
+        #history-timeline-box::-webkit-scrollbar-thumb { background: rgba(192, 108, 76, 0.15); border-radius: 4px; }
+
+        /* 📑 CHIP MATRIX LOGS */
+        .history-chip { background: #1C1917; border: 1px solid rgba(230, 223, 211, 0.03); border-radius: 14px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: all 0.2s ease; }
+        .history-chip:hover { background: #262320; border-color: rgba(192, 108, 76, 0.25); }
+        .chip-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .chip-text { font-size: 0.95rem; color: #E6DFD3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+        .chip-meta { font-size: 0.75rem; color: rgba(192, 108, 76, 0.6); font-weight: 600; text-transform: uppercase; }
+
+        .chip-trigger-btn { background: transparent; border: none; color: rgba(230, 223, 211, 0.4); font-size: 1.3rem; cursor: pointer; padding: 4px 8px; transition: all 0.15s ease; border-radius: 6px; position: relative; z-index: 10; }
+        .chip-trigger-btn:hover { color: #C06C4C; background: rgba(192, 108, 76, 0.1); }
+
+        /* 📍 CONTEXT MENU FLOAT ACTION POPUP */
+        .context-menu-popover { 
+            display: none; 
+            position: fixed; 
+            background: #262320; 
+            border: 1px solid rgba(192, 108, 76, 0.3); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 35px rgba(0,0,0,0.7); 
+            z-index: 3999; 
+            overflow: hidden; 
+            width: 150px; 
+        }
+        .context-menu-popover button { display: block; width: 100%; padding: 12px 16px; background: transparent; border: none; color: #E6DFD3; text-align: left; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+        .context-menu-popover button:hover { background: rgba(192, 108, 76, 0.15); color: #ffffff; }
+        .delete-opt { color: #E55039 !important; border-top: 1px solid rgba(230, 223, 211, 0.05); }
+        .delete-opt:hover { background: rgba(229, 80, 57, 0.15) !important; }
+
+        /* 💬 CONTAINER SYSTEM COMPONENT */
+        #chat-pane-main { flex: 1; height: 100%; display: flex; flex-direction: column; background: #12100E; justify-content: center; align-items: center; width: 100%; }
+        #chat-container { 
+    width: 97%; 
+    max-width: 1350px; 
+    height: 95vh; 
+    background: #1C1917; 
+    border-radius: 24px; 
+    display: flex; 
+    flex-direction: column; 
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7); 
+    border: 1px solid rgba(192, 108, 76, 0.08); 
+    overflow: hidden; 
+}
+        
+        #header { background: rgba(28, 25, 23, 0.85); backdrop-filter: blur(10px); padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(192, 108, 76, 0.12); }
+        
+        .sidebar-toggle-btn { background: transparent; border: none; color: #E6DFD3; font-size: 1.5rem; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s ease; }
+        .sidebar-toggle-btn:hover { color: #C06C4C; }
+        
+        .lang-switcher-wrapper { display: flex; align-items: center; gap: 8px; background: #262320; padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(192, 108, 76, 0.2); }
+        .globe-icon { width: 16px; height: 16px; fill: #C06C4C; }
+        #lang-selector { background: transparent; border: none; color: #E6DFD3; font-size: 1rem; font-weight: 600; outline: none; cursor: pointer; }
+        #lang-selector option { background: #262320; color: #E6DFD3; }
+
+        #chat-box { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 28px; background: radial-gradient(circle at top right, rgba(192, 108, 76, 0.02), transparent 50%); }
+        #chat-box::-webkit-scrollbar { width: 6px; }
+        #chat-box::-webkit-scrollbar-thumb { background: rgba(230, 223, 211, 0.1); border-radius: 10px; }
+        
+        .message-wrapper { display: flex; width: 100%; flex-direction: column; }
+        .message { max-width: 75%; padding: 18px 26px; word-wrap: break-word; font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); white-space: pre-wrap; }
+        .user-wrapper { align-items: flex-end; }
+        .user { background: #3A6054; color: #F0EBE1; border-radius: 20px 20px 4px 20px; }
+        .bot-wrapper { align-items: flex-start; }
+        .bot { background: #262320; color: #E6DFD3; border-radius: 20px 20px 20px 4px; border: 1px solid rgba(230, 223, 211, 0.03); }
+
+        #preview-deck { padding: 8px 28px; display: flex; flex-wrap: wrap; gap: 10px; background: #1C1917; }
+        .media-preview { position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #C06C4C; }
+        .media-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .remove-badge { background: transparent; color: #C06C4C; border: none; font-size: 14px; cursor: pointer; font-weight: bold; }
+
+        #input-area { display: flex; padding: 24px 28px; background: #1C1917; border-top: 1px solid rgba(192, 108, 76, 0.08); gap: 12px; align-items: center; position: relative; min-height: 100px; }
+        .utility-btn { background: #262320; color: #E6DFD3; border: 1px solid rgba(230, 223, 211, 0.08); width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: all 0.2s ease; }
+        .utility-btn:hover { background: #322e2a; border-color: #C06C4C; }
+        .recording { background: #7a2a1d !important; animation: pulse 1.5s infinite; }
+
+        #menu-popover { display: none; position: absolute; bottom: 95px; left: 28px; background: #262320; border: 1px solid rgba(192, 108, 76, 0.2); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 8px 0; z-index: 10; width: 190px; }
+        #menu-popover button { display: block; width: 100%; padding: 12px 16px; background: transparent; border: none; color: #E6DFD3; text-align: left; font-size: 1rem; font-weight: 500; cursor: pointer; }
+        #menu-popover button:hover { background: rgba(192, 108, 76, 0.15); color: #ffffff; }
+
+        .input-wrapper { flex: 1; display: flex; align-items: center; }
+        #user-input { width: 100%; padding: 18px 28px; background: #12100E; border: 1px solid rgba(230, 223, 211, 0.08); border-radius: 35px; color: #E6DFD3; font-size: 1.15rem; outline: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 58px; }
+        #user-input:focus { border-color: #C06C4C; box-shadow: 0 0 0 4px rgba(192, 108, 76, 0.12); }
+
+        #send-btn, #stop-btn { border: none; padding: 18px 36px; border-radius: 35px; font-weight: 700; font-size: 1.15rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 58px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        #send-btn { background: #C06C4C; color: #12100E; }
+        #stop-btn { background: #4a1d1d; color: #E6DFD3; display: none; }
+
+        /* 🌐 POP-UP MODAL OVERLAYS */
+        .app-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 5000; justify-content: center; align-items: center; }
+        .modal-content { background: #1C1917; border: 1px solid #C06C4C; padding: 30px; border-radius: 20px; width: 90%; max-width: 440px; display: flex; flex-direction: column; gap: 20px; color: #E6DFD3; }
+        .modal-content h3 { font-weight: 700; font-size: 1.3rem; color: #E6DFD3; letter-spacing: 0.2px; }
+        
+        .sharing-app-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .share-target-btn { background: #262320; border: 1px solid rgba(230, 223, 211, 0.06); border-radius: 14px; padding: 14px; color: #E6DFD3; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.15s ease; text-decoration: none; font-size: 0.95rem; }
+        .share-target-btn:hover { background: #322e2a; border-color: #C06C4C; color: #ffffff; }
+
+        .link-input-field { background: #12100E; border: 1px solid rgba(230, 223, 211, 0.1); border-radius: 8px; padding: 10px 14px; color: #E6DFD3; outline: none; width: 100%; font-size: 1rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+        .modal-btn { border: none; padding: 12px 24px; border-radius: 24px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+        .modal-confirm { background: #C06C4C; color: #12100E; }
+        .modal-cancel { background: #262320; color: #E6DFD3; }
+
+        #viewfinder-container { width: 100%; height: 240px; background: #12100E; border-radius: 12px; overflow: hidden; border: 1px solid rgba(192, 108, 76, 0.2); position: relative; }
+        #webcam-feed { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ==========================================================================
+           🎨 THE 7 REGIONAL LINGUISTIC DESIGN SECTOR RESTORATIONS (EXACT PARAMETERS)
+           ========================================================================== */
+        
+        /* Sect 1. Hindi, Marathi, Punjabi: Linear Shirorekha Suite */
+        .script-north-shirorekha .message { font-family: 'Noto Sans', sans-serif !important; font-size: 1.6rem !important; line-height: 2.3 !important; font-weight: 700 !important; }
+        .script-north-shirorekha #user-input { font-family: 'Noto Sans', sans-serif !important; font-size: 1.5rem !important; padding: 20px 30px !important; min-height: 66px !important; }
+        .script-north-shirorekha #send-btn, .script-north-shirorekha #stop-btn { font-family: 'Noto Sans', sans-serif !important; font-size: 1.25rem !important; min-height: 66px !important; }
+
+        /* Sect 2. Bengali, Assamese: Sharp Horizontal Suite */
+        .script-east-sharps .message { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 1.65rem !important; line-height: 2.2 !important; letter-spacing: 0.4px !important; font-weight: 700 !important; }
+        .script-east-sharps #user-input { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 1.55rem !important; padding: 18px 30px !important; min-height: 68px !important; }
+        .script-east-sharps #send-btn, .script-east-sharps #stop-btn { font-family: 'Noto Sans Bengali', sans-serif !important; font-size: 1.3rem !important; min-height: 68px !important; }
+
+        /* Sect 3. ODIA MASTER SUITE - Dynamic Shadow Multiplier Engine */
+        .script-odia-supreme .message { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 2.2rem !important; line-height: 2.9 !important; letter-spacing: 1.4px !important; font-weight: 700 !important; padding: 24px 32px !important; text-shadow: 0.4px 0.4px 0px #E6DFD3, -0.3px -0.3px 0px #E6DFD3; }
+        .script-odia-supreme #user-input { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 1.9rem !important; padding: 24px 34px !important; min-height: 82px !important; font-weight: 700 !important; letter-spacing: 1.4px !important; border-radius: 42px !important; text-shadow: 0.4px 0.4px 0px #E6DFD3, -0.3px -0.3px 0px #E6DFD3; }
+        .script-odia-supreme #send-btn, .script-odia-supreme #stop-btn { font-family: 'Noto Sans Odia', sans-serif !important; font-size: 1.45rem !important; min-height: 82px !important; font-weight: 700 !important; border-radius: 42px !important; }
+
+        /* Sect 4. Gujarati: Elastic Widescreen Framework */
+        .script-gujarati-elastic .message { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 1.75rem !important; line-height: 2.4 !important; letter-spacing: 0.5px !important; font-weight: 700 !important; }
+        .script-gujarati-elastic #user-input { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 1.6rem !important; padding: 22px 32px !important; min-height: 72px !important; }
+        .script-gujarati-elastic #send-btn, .script-gujarati-elastic #stop-btn { font-family: 'Noto Sans Gujarati', sans-serif !important; font-size: 1.3rem !important; min-height: 72px !important; }
+
+        /* Sect 5. Telugu: Carved Dynamic Interlocking Suite */
+        .script-telugu-carved .message { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 1.85rem !important; line-height: 2.6 !important; letter-spacing: 0.4px !important; font-weight: 700 !important; padding: 22px 30px !important; }
+        .script-telugu-carved #user-input { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 1.7rem !important; padding: 24px 32px !important; min-height: 78px !important; font-weight: 700 !important; border-radius: 40px !important; }
+        .script-telugu-carved #send-btn, .script-telugu-carved #stop-btn { font-family: 'Noto Sans Telugu', sans-serif !important; font-size: 1.35rem !important; min-height: 78px !important; font-weight: 700 !important; border-radius: 40px !important; }
+
+        /* Sect 6. Kannada: Prominent Top Accent Suite */
+        .script-kannada-top .message { font-family: 'Noto Sans Kannada', sans-serif !important; font-size: 1.8rem !important; line-height: 2.5 !important; letter-spacing: 0.3px !important; font-weight: 700 !important; }
+        .script-kannada-top #user-input { font-family: 'Noto Sans Kannada', sans-serif !important; font-size: 1.65rem !important; padding: 22px 30px !important; min-height: 74px !important; font-weight: 700 !important; }
+        .script-kannada-top #send-btn, .script-kannada-top #stop-btn { font-family: 'Noto Sans Kannada', sans-serif !important; font-size: 1.35rem !important; min-height: 74px !important; font-weight: 700 !important; }
+
+        /* Sect 7. Tamil & Malayalam South-Grid Suite */
+        .script-south-flat .message { font-family: 'Noto Sans Tamil', sans-serif !important; font-size: 1.6rem !important; line-height: 2.1 !important; font-weight: 700 !important; }
+        .script-south-flat[data-lang="Malayalam"] .message { font-family: 'Noto Sans Malayalam', sans-serif !important; font-size: 1.65rem !important; line-height: 2.2 !important; letter-spacing: 0.2px !important; }
+        .script-south-flat #user-input { font-size: 1.45rem !important; padding: 20px 28px !important; min-height: 68px !important; }
+        .script-south-flat[data-lang="Malayalam"] #user-input { font-family: 'Noto Sans Malayalam', sans-serif !important; }
+        .script-south-flat #send-btn, .script-south-flat #stop-btn { font-size: 1.25rem !important; min-height: 68px !important; }
+        .script-south-flat[data-lang="Malayalam"] #send-btn, .script-south-flat[data-lang="Malayalam"] #stop-btn { font-family: 'Noto Sans Malayalam', sans-serif !important; }
+
+
+/* ⏳ SMOOTH TYPING SPINNER EFFECTS */
+        .typing-bubble { display: flex; align-items: center; gap: 5px; min-height: 24px; padding: 4px 0; }
+        .typing-dot { width: 8px; height: 8px; background: rgba(230, 223, 211, 0.6); border-radius: 50%; animation: wave 1.3s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; background: rgba(192, 108, 76, 0.6); }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes wave {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-7px); }
+        }
+
+    /* Ensure the outer container uses dynamic viewport height */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; /* 'dvh' adapts dynamically when mobile keyboards open */
+  overflow: hidden;
+}
+
+/* Messages area scrolls smoothly */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Prevents laggy scrolling on iPhones */
+  padding: 15px;
+}
+
+/* Keep the input area pinned to the bottom */
+.chat-input-area {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Stop mobile browsers from zooming in auto-magically on inputs */
+input, textarea {
+  font-size: 16px !important; /* Font size under 16px causes auto-zoom lag on iOS */
+
+  
+}
+
+
+
+/* Lock the page so nothing overflows off-screen */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Outer main container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; /* Adapts dynamically to mobile viewports */
+  max-height: 100%;
+}
+
+/* Middle message area - takes all available space */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto; /* Allow scrolling ONLY inside the message area */
+  -webkit-overflow-scrolling: touch;
+  padding: 15px;
+}
+
+/* Input area - firmly pinned to the bottom */
+.chat-input-area {
+  flex-shrink: 0; /* Prevents the input box from collapsing or getting pushed down */
+  position: relative;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  background-color: #1e1e1e; /* Match your dark theme background */
+}
+
+
+/* Fixes inverted text on all text inputs and textareas */
+input[type="text"],
+input[type="search"],
+input:not([type]),
+textarea {
+    direction: ltr !important;
+    unicode-bidi: normal !important;
+    text-align: left !important;
+}
+
+
+    </style>
+
+
+
+</head>
+<body>
+
+<div id="workspace-wrapper">
+    
+    <!-- 💾 COLLAPSIBLE DRAWER SIDEBAR -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <span id="lbl-sidebar-title">📜 HISTORY</span>
+            <button class="close-sidebar-btn" onclick="toggleSidebar()">×</button>
+        </div>
+        
+        <!-- ➕ NEW CHAT ACTION PORTAL -->
+        <div style="padding: 10px 16px 4px 16px;">
+            <button onclick="startFreshNewChatSession()" style="width: 100%; padding: 12px; background: rgba(192, 108, 76, 0.15); border: 1px dashed #C06C4C; border-radius: 12px; color: #E6DFD3; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>+</span> New Chat
+            </button>
+        </div>
+
+        <div id="history-timeline-box"></div>
+
+        
+
+        <!-- 👤 USER ACCOUNT PROFILE FOOTER BLOCK -->
+<div style="padding: 16px; border-top: 1px solid rgba(230, 223, 211, 0.05); background: #12100E; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 36px; height: 36px; background: #C06C4C; border-radius: 50%; color: #12100E; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem;">
+            {{ user.name[0].upper() }}
+        </div>
+        <div style="display: flex; flex-direction: column; min-width: 0;">
+            <span style="font-size: 0.9rem; font-weight: 600; color: #E6DFD3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.name }}</span>
+            <span style="font-size: 0.75rem; color: rgba(230, 223, 211, 0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.email }}</span>
+        </div>
+    </div>
+    <a href="/logout" style="color: #E55039; text-decoration: none; font-size: 1.2rem;" title="Logout">🚪</a>
+</div>
+
+    </div>
+
+    <div id="chat-pane-main">
+        <div id="chat-container">
+            <div id="header">
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()">☰</button>
+                
+                <div class="lang-switcher-wrapper">
+                    <svg class="globe-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7.06-3.6-7.55-7.55H7c.05 1.75.43 3.38 1.04 4.84L6.12 19.1c1.23.63 2.61.9 4.88.83zm-1-7.93H4.06c.49-3.95 3.6-7.06 7.55-7.55v3.66c-1.75.05-3.38.43-4.84 1.04l1.93 1.93C8.62 10.3 8.9 11.12 9 12zm2-7.93c3.95.49 7.06 3.6 7.55 7.55H17c-.05-1.75-.43-3.38-1.04-4.84l1.92-1.92c-1.23-.62-2.61-.89-4.88-.79zM15 12c-.08-.88-.36-1.7-.84-2.41l1.93-1.93c.61 1.46.99 3.09 1.04 4.84H15zm-2 7.93V16.3c1.75-.05 3.38-.43 4.84-1.04l-1.93-1.93c-.42.71-.7 1.53-.91 2.41-.49 3.95-3.6 7.06-7.55 7.55zM12 4.5c.83 0 1.62.67 2.14 1.83C13.43 7.42 12.74 8.61 12.24 10H11.76c-.5-1.39-1.19-2.58-1.9-3.67.52-1.16 1.31-1.83 2.14-1.83zm-1.88 7.5c.08.88.36 1.7.84 2.41l-1.93 1.93c-.61-1.46-.99-3.09-1.04-4.84h2.13zm1.88 7.5c-.83 0-1.62-.67-2.14-1.83.71-1.09 1.4-2.28 1.9-3.67h.48c.5 1.39 1.19 2.58 1.9 3.67-.52 1.16 1.31 1.83-2.14 1.83zm1.24-5.5c-.08-.88-.36-1.7-.84-2.41h.48c.5 1.39 1.19 2.58 1.9 3.67l-1.93 1.93c-.42-.71-.7-1.53-.91-2.41z"/></svg>
+                    <select id="lang-selector" onchange="applyLanguageLocalization()">
+                        <option value="English">English</option>
+                        <option value="Hindi">हिन्दी (Hindi)</option>
+                        <option value="Marathi">मराठी (Marathi)</option>
+                        <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+                        <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                        <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="Tamil">தமிழ் (Tamil)</option>
+                        <option value="Telugu">తెలుగు (Telugu)</option>
+                        <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                        <option value="Malayalam">മലയാളം (Malayalam)</option>
+                        <option value="Assamese">অসমীয়া (Assamese)</option>
+                        <option value="Bengali">বাংলা (Bengali)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="chat-box"></div>
+            <div id="preview-deck"></div>
+            
+            <div id="input-area">
+                <input type="file" id="gallery-input" accept="image/*,video/*" style="display: none;" onchange="handleFileSelect(event)">
+
+                <button class="utility-btn" title="Add Attachments" onclick="toggleMenu(event)">+</button>
+                <button class="utility-btn" title="Quick Camera Access" onclick="openLiveCamera()">📷</button>
+                <button class="utility-btn" id="voice-btn" title="Voice Input" onclick="toggleVoice()">🎙️</button>
+                
+                <div id="menu-popover">
+                    <button id="lbl-pop-gallery" onclick="triggerFilePicker('gallery')">📁 Local / Gallery</button>
+                    <button id="lbl-pop-drive" onclick="triggerFilePicker('drive')">🤖 Google Drive</button>
+                    <button id="lbl-pop-link" onclick="openLinkModal()">🔗 Reference Link</button>
+                </div>
+
+
+
+             <div class="input-wrapper" style="flex-shrink: 0; flex-grow: 1;">
+                  <input type="text" id="user-input" dir="ltr" placeholder="Type a message..." autocomplete="off">
+                </div>
+
+                
+                <button id="send-btn" onclick="sendMessage()">Send</button>
+                <button id="stop-btn" onclick="stopResponse()">Stop ⏹</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="chip-context-popover" class="context-menu-popover">
+    <button onclick="triggerShareModal()">🔗 Share Link</button>
+    <button class="delete-opt" onclick="triggerItemDelete()">🗑️ Delete Chat</button>
+</div>
+
+<!-- 🌐 OUTBOUND BRAND SHARING HUBS OVERLAY MODAL -->
+<div id="share-hub-modal" class="app-modal">
+    <div class="modal-content">
+        <h3 id="share-modal-title">Propagate Insights</h3>
+        
+        <!-- 📋 QUICK COPY CLIPBOARD MECHANISM -->
+        <div style="display: flex; gap: 8px; background: #12100E; padding: 4px; border-radius: 12px; border: 1px solid rgba(192, 108, 76, 0.2);">
+            <input type="text" id="share-link-copy-field" readonly style="flex: 1; background: transparent; border: none; color: rgba(230, 223, 211, 0.6); padding: 8px 12px; font-size: 0.85rem; outline: none;" value="">
+            <button onclick="copyShareLinkToClipboard()" style="background: #C06C4C; color: #12100E; border: none; padding: 0 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">Copy</button>
+        </div>
+
+        <div class="sharing-app-grid">
+            <a href="#" id="share-wa" target="_blank" class="share-target-btn">WhatsApp</a>
+            <a href="#" id="share-tg" target="_blank" class="share-target-btn">Telegram</a>
+            <a href="#" id="share-x" target="_blank" class="share-target-btn">X (Twitter)</a>
+            <a href="#" id="share-fb" target="_blank" class="share-target-btn">Facebook</a>
+            <a href="#" id="share-insta" target="_blank" class="share-target-btn">Instagram</a>
+            <a href="#" id="share-rd" target="_blank" class="share-target-btn">Reddit</a>
+            <a href="#" id="share-gmail" target="_blank" class="share-target-btn">Gmail</a>
+        </div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-cancel" onclick="closeShareModal()">Close Portal</button>
+        </div>
+    </div>
+</div>
+
+<div id="link-modal" class="app-modal">
+    <div class="modal-content">
+        <h3 id="lbl-modal-title">Add Reference Links (Max 5)</h3>
+        <input type="url" class="link-input-field" placeholder="Paste link 1...">
+        <input type="url" class="link-input-field" placeholder="Paste link 2...">
+        <input type="url" class="link-input-field" placeholder="Paste link 3...">
+        <input type="url" class="link-input-field" placeholder="Paste link 4...">
+        <input type="url" class="link-input-field" placeholder="Paste link 5...">
+        <div class="modal-actions">
+            <button class="modal-btn modal-cancel" id="lbl-modal-cancel" onclick="closeLinkModal()">Cancel</button>
+            <button class="modal-btn modal-confirm" id="lbl-modal-confirm" onclick="saveLinks()">Confirm Links</button>
+        </div>
+    </div>
+</div>
+
+<div id="camera-modal" class="app-modal">
+    <div class="modal-content">
+        <h3 id="lbl-cam-title">Live Viewfinder Capture</h3>
+        <div id="viewfinder-container"><video id="webcam-feed" autoplay playsinline></video></div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-cancel" id="lbl-cam-cancel" onclick="closeLiveCamera()">Cancel</button>
+            <button class="modal-btn modal-confirm" id="lbl-cam-snap" onclick="captureSnapshot()">Snap Photo 📸</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const languagePack = {
+        English: { sidebar: "📜 HISTORY", placeholder: "Type a message...", send: "Send", stop: "Stop ⏹", gallery: "📁 Local / Gallery", drive: "🤖 Google Drive", link: "🔗 Reference Link", mTitle: "Add Reference Links (Max 5)", mCancel: "Cancel", mConfirm: "Confirm Links", cTitle: "Live Viewfinder Capture", cCancel: "Cancel", cSnap: "Snap Photo 📸", processing: "Processing..." },
+        Hindi: { sidebar: "📜 इतिहास", placeholder: "संदेश लिखें...", send: "भेजें", stop: "रोकें ⏹", gallery: "📁 लोकल / गैलरी", drive: "🤖 गूगल ड्राइव", link: "🔗 संदर्भ लिंक", mTitle: "संदर्भ लिंक जोड़ें (अधिकतम 5)", mCancel: "रद्द करें", mConfirm: "पुष्टि करें", cTitle: "लाइव  कैमरा", cCancel: "रद्द करें", cSnap: "फोटो लें 📸", processing: "संसाधित किया जा रहा है..." },
+        Marathi: { sidebar: "📜 इतिहास", placeholder: "संदेश टाईप करा...", send: "पाठवा", stop: "थांबवा ⏹", gallery: "📁 लोकल / गॅलरी", drive: "🤖 गुगल ड्राईव्ह", link: "🔗 संदर्भ लिंक", mTitle: "संदर्भ लिंक जोडा (ಕಮಾಲ್ 5)", mCancel: "ರದ್ದ್ ಕರಾ", mConfirm: "ಪುಷ್ಟಿ ಕರಾ", cTitle: "थेट कॅмера", cCancel: "रद्द करा", cSnap: "फोटो काढा 📸", processing: "प्रक्रिया सुरू आहे..." },
+        Odia: { sidebar: "📜 ଇତିହାସ", placeholder: "ସନ୍ଦେଶ ଟାଇପ୍ କରନ୍ତୁ...", send: "ପଠାନ୍ତୁ", stop: "ଅଟକାନ୍ତୁ ⏹", gallery: "📁 ଲୋକାଲ୍ / ଗ୍ୟାଲେରୀ", drive: "🤖 ଗୁଗଲ୍ ଡ୍ରାଇଭ୍", link: "🔗 ସନ୍ଦର୍ଭ ଲିଙ୍କ୍", mTitle: "ସନ୍ଦର୍ଭ ଲିଙ୍କ୍ ଯୋଡନ୍ତୁ", mCancel: "ବାତିଲ୍", mConfirm: "ନିଶ୍ଚିତ କରନ୍ତୁ", cTitle: "ଲାଇଭ୍ କ୍ୟାମେରା", cCancel: "ବାତିଲ୍", cSnap: "ଫଟୋ ଉଠାନ୍ତୁ 📸", processing: "ପ୍ରକ୍ରିୟାକରଣ ଚାଲିଛି..." },
+        Gujarati: { sidebar: "📜 ઇતિહાસ", placeholder: "સંદેશ ટાઇપ કરો...", send: "મોકલો", stop: "અટકાવો ⏹", gallery: "📁 લોકલ / ગેલેરી", drive: "🤖 ગૂગલ ડ્રાઇવ", link: "🔗 સંદર્ભ લિંક", mTitle: "સંદર્ભ લિંક ઉમેરો", mCancel: "કેન્સલ", mConfirm: "કન્ફર્મ કરો", cTitle: "લાઇવ કેમેરા", cCancel: "કેન્સલ", cSnap: "ફોટો લો 📸", processing: "પ્રક્રિયા ચાલુ છે..." },
+        Punjabi: { sidebar: "📜 ਇਤਿਹਾਸ", placeholder: "ਸੁਨੇਹਾ ਟਾਈਪ ਕਰੋ...", send: "ਭੇਜੋ", stop: "ਰੋਕੋ ⏹", gallery: "📁 ਲੋਕਲ / ਗੈਲਰੀ", drive: "🤖 ਗੂਗਲ ਡ੍ਰਾਈਵ", link: "🔗 ਹਵਾਲਾ ਲਿੰਕ", mTitle: "ਹਵਾਲਾ ਲਿੰਕ ਜੋੜੋ", mCancel: "ਰੱਦ ਕਰੋ", mConfirm: "ਪੁਸ਼ਟੀ ਕਰੋ", cTitle: "ਲਾਈਵ ਕੈਮਰਾ", cCancel: "ਰੱਦ ਕਰੋ", cSnap: "ਫੋਟੋ ਖਿੱਚੋ 📸", processing: "ਪ੍ਰੋਸੈਸਿੰਗ ਜਾਰੀ ਹੈ..." },
+        Tamil: { sidebar: "📜 வரலாறு", placeholder: "செய்தியை தட்டச்சு செய்க...", send: "அனுப்பு", stop: "நிறுத்து ⏹", gallery: "📁 லோக்கல் / கேலரி", drive: "🤖 கூகிள் டிரைவ்", link: "🔗 குறிப்பு இணைப்பு", mTitle: "குறிப்பு இணைப்புகளைச் சேர்க்கவும்", mCancel: "ரத்து", mConfirm: "உறுதிப்படுத்து", cTitle: "நேரடி கேமரா", cCancel: "ரத்து", cSnap: "புகைப்படம் எடு 📸", processing: "செயலாக்கப் படுகிறது..." },
+        Telugu: { sidebar: "📜 చరిత్ర", placeholder: "సందేశాన్ని టైప్ చేయండి...", send: "పంపండి", stop: "ఆపండి ⏹", gallery: "📁 లోకல் / గ్యాలరీ", drive: "🤖 గూగుల్ డ్రైవ్", link: "🔗 రిఫరెన్స్ లింక్", mTitle: "రిఫరెన్స్ లింక్‌లను జోడించండి", mCancel: "రద్దు", mConfirm: "స్థిరీకరించు", cTitle: "లైవ్ కెమెరా", cCancel: "రద్దు", cSnap: "ఫోటో తీయి 📸", processing: "ప్రాసెస్ అవుతోంది..." },
+        Kannada: { sidebar: "📜 ಇತಿಹಾಸ", placeholder: "ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ...", send: "ಕಳುಹಿಸಿ", stop: "ನಿಲ್ಲಿಸಿ ⏹", gallery: "📁 ಲೋಕಲ್ / ಗ್ಯಾಲರಿ", drive: "🤖 ಗೂಗಲ್ ಡ್ರೈవ్", link: "🔗 ಉಲ್ಲೇಖ ಲಿಂಕ್", mTitle: "ಉಲ್ಲೇಖ ಲಿಂಕ್ ಸೇರಿಸಿ", mCancel: "ರದ್ದು", mConfirm: "ದೃಢೀಕರಿಸಿ", cTitle: "ಲೈವ್ ಕ್ಯಾಮೆರಾ", cCancel: "ರದ್ದು", cSnap: "ಫೋಟೋ ತೆಗೆಯಿರಿ 📸", processing: "ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗುತ್ತಿದೆ..." },
+        Malayalam: { sidebar: "📜 ചരിത്രം", placeholder: "സന്ദേശം ടൈപ്പ് ചെയ്യുക...", send: "അയക്കുക", stop: "നിർത്തുക ⏹", gallery: "📁 ലോക്കൽ / ഗാലറി", drive: "🤖 ഗൂഗിൾ ഡ്രൈവ്", link: "🔗 റഫറൻസ് ലിങ്ക്", mTitle: "റഫറൻസ് ലിങ്ക് ചേർക്കുക", mCancel: "റദ്ദാക്കുക", mConfirm: "സ്ഥിരീകരിക്കുക", cTitle: "ലൈവ് ക്യാമറ", cCancel: "റദ്ദാക്കുക", cSnap: "ഫോട്ടോ എടുക്കുക 📸", processing: "പ്രോസസ്സ് ചെയ്യുന്നു..." },
+        Assamese: { sidebar: "📜 ইতিহাস", placeholder: "বাৰ্তা লিখক...", send: "পঠিয়াওক", stop: "বন্ধ কৰক ⏹", gallery: "📁 লোকেল / গ্যালৰী", drive: "🤖 গুগল ড্ৰাইভ", link: "🔗 প্ৰসংগ লিংক", mTitle: "প্ৰসংগ লিংক যোগ কৰক", mCancel: "বাতিল", mConfirm: "নিশ্চিত কৰক", cTitle: "লাইভ কেমেৰা", cCancel: "বাতিল", cSnap: "ফটো তোলক 📸", processing: "প্ৰক্ৰিয়াকৰণ হৈ আছে..." },
+        Bengali: { sidebar: "📜 ইতিহাস", placeholder: "বার্তা লিখুন...", send: "পাঠান", stop: "থামান ⏹", gallery: "📁 লোকাল / গ্যালারি", drive: "🤖 গুগল ড্রাইভ", link: "🔗 রেফারেন্স লিঙ্ক", mTitle: "রেফারেন্স লিঙ্ক যোগ করুন", mCancel: "বাতিল", mConfirm: "নিশ্চিত করুন", cTitle: "লাইভ  ಕ್ಯಾಮರಾ", cCancel: "বাতিল", cSnap: "ছবি তুলুন 📸", processing: "প্রসেস করা হচ্ছে..." }
+    };
+
+    function applyLanguageLocalization() {
+        const lang = document.getElementById('lang-selector').value;
+        const pack = languagePack[lang] || languagePack.English;
+        const container = document.getElementById('chat-container');
+        
+        container.className = "";
+        container.removeAttribute("data-lang");
+
+        // 🎯 THE 7 TYPOGRAPHIC SECTOR MATCHERS
+        if (["Hindi", "Marathi", "Punjabi"].includes(lang)) {
+            container.classList.add("script-north-shirorekha");
+        } else if (["Bengali", "Assamese"].includes(lang)) {
+            container.classList.add("script-east-sharps");
+        } else if (lang === "Odia") {
+            container.classList.add("script-odia-supreme");
+        } else if (lang === "Gujarati") {
+            container.classList.add("script-gujarati-elastic");
+        } else if (lang === "Telugu") {
+            container.classList.add("script-telugu-carved");
+        } else if (lang === "Kannada") {
+            container.classList.add("script-kannada-top");
+        } else if (["Tamil", "Malayalam"].includes(lang)) {
+            container.classList.add("script-south-flat");
+            if(lang === "Malayalam") container.setAttribute("data-lang", "Malayalam");
+        }
+        
+        // Dynamic localized string insertion across elements
+        document.getElementById('lbl-sidebar-title').innerText = pack.sidebar || languagePack.English.sidebar;
+        document.getElementById('user-input').placeholder = pack.placeholder || languagePack.English.placeholder;
+        document.getElementById('send-btn').innerText = pack.send || languagePack.English.send;
+        document.getElementById('stop-btn').innerText = pack.stop || languagePack.English.stop;
+    }
+
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const previewDeck = document.getElementById('preview-deck');
+    const menuPopover = document.getElementById('menu-popover');
+    const linkModal = document.getElementById('link-modal');
+    const cameraModal = document.getElementById('camera-modal');
+    const webcamFeed = document.getElementById('webcam-feed');
+    const historyTimelineBox = document.getElementById('history-timeline-box');
+    const chipContextPopover = document.getElementById('chip-context-popover');
+    const shareHubModal = document.getElementById('share-hub-modal');
+    const sidebarElement = document.getElementById('sidebar');
+    
+    let activeFile = null;
+    let attachedLinks = [];
+    let abortController = null;
+    let recognition = null;
+    let isRecording = false;
+    let localStream = null;
+    
+    let selectedChipId = null;
+    let selectedChipData = null;
+
+    window.addEventListener('DOMContentLoaded', fetchHistoryLogArchives);
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    
+    document.addEventListener('click', (e) => { 
+        menuPopover.style.display = 'none';
+        if (!e.target.classList.contains('chip-trigger-btn')) {
+            chipContextPopover.style.display = 'none';
+        }
+    });
+
+    function toggleSidebar() {
+        sidebarElement.classList.toggle('open');
+    }
+
+    function toggleMenu(e) { e.stopPropagation(); menuPopover.style.display = menuPopover.style.display === 'block' ? 'none' : 'block'; }
+    function triggerFilePicker(type) { document.getElementById('gallery-input').click(); }
+    function handleFileSelect(event) { const file = event.target.files[0]; if (!file) return; activeFile = file; renderPreviews(); }
+    
+    async function openLiveCamera() {
+        cameraModal.style.display = 'flex';
+        try { localStream = await navigator.mediaDevices.getUserMedia({ video: true }); webcamFeed.srcObject = localStream; }
+        catch (err) { alert("Camera system blocked."); closeLiveCamera(); }
+    }
+    function closeLiveCamera() { cameraModal.style.display = 'none'; if (localStream) localStream.getTracks().forEach(t => t.stop()); }
+    function captureSnapshot() {
+        const canvas = document.createElement('canvas'); canvas.width = webcamFeed.videoWidth || 640; canvas.height = webcamFeed.videoHeight || 480;
+        canvas.getContext('2d').drawImage(webcamFeed, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => { activeFile = new File([blob], "camera.png", { type: "image/png" }); renderPreviews(); closeLiveCamera(); }, 'image/png');
+    }
+
+    function openLinkModal() { linkModal.style.display = 'flex'; }
+    function closeLinkModal() { linkModal.style.display = 'none'; }
+    function saveLinks() {
+        const inputs = document.querySelectorAll('.link-input-field'); attachedLinks = [];
+        inputs.forEach(i => { if (i.value.trim()) attachedLinks.push(i.value.trim()); });
+        closeLinkModal(); renderPreviews();
+    }
+
+    function renderPreviews() {
+        previewDeck.innerHTML = '';
+        if (activeFile) {
+            const div = document.createElement('div'); div.classList.add('media-preview');
+            const img = document.createElement('img'); img.src = URL.createObjectURL(activeFile);
+            const btn = document.createElement('button'); btn.innerText = '×'; btn.classList.add('remove-badge');
+            btn.onclick = () => { activeFile = null; renderPreviews(); };
+            div.append(img, btn); previewDeck.appendChild(div);
+        }
+    }
+
+    function toggleVoice() {
+        if (isRecording) { recognition.stop(); return; }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+        recognition = new SpeechRecognition();
+        const currentLang = document.getElementById('lang-selector').value;
+        const speechMap = { English: 'en-IN', Hindi: 'hi-IN', Odia: 'or-IN' };
+        recognition.lang = speechMap[currentLang] || 'en-IN';
+        recognition.onstart = () => { isRecording = true; document.getElementById('voice-btn').classList.add('recording'); };
+        recognition.onresult = (e) => { userInput.value = e.results[0][0].transcript; };
+        recognition.onend = () => { isRecording = false; document.getElementById('voice-btn').classList.remove('recording'); };
+        recognition.start();
+    }
+
+    function stopResponse() { if (abortController) { abortController.abort(); sendBtn.style.display = 'inline-flex'; stopBtn.style.display = 'none'; } }
+
+   async function fetchHistoryLogArchives() {
+        try {
+            const response = await fetch('/history');
+            const data = await response.json();
+            historyTimelineBox.innerHTML = '';
+            
+            data.forEach(item => {
+                const chip = document.createElement('div');
+                chip.classList.add('history-chip');
+                
+                // 🛡️ Safe Event Mapping without messy inline string replacements
+                chip.addEventListener('click', (event) => {
+                    loadSavedChatContextToScreen(event, item.prompt, item.response, item.language);
+                });
+                
+                chip.innerHTML = `
+                    <div class="chip-body">
+                        <span class="chip-text"></span>
+                        <div class="chip-meta">🌐 ${item.language}</div>
+                    </div>
+                    <button class="chip-trigger-btn">⋮</button>
+                `;
+                
+                // Safely set text context to prevent quote escaping crashes
+                chip.querySelector('.chip-text').innerText = item.prompt;
+                
+                // Attach the 3-dot trigger context click event cleanly
+                const triggerBtn = chip.querySelector('.chip-trigger-btn');
+                triggerBtn.addEventListener('click', (event) => {
+                    openContextMenu(event, item.id, item.prompt, item.response);
+                });
+                
+                historyTimelineBox.appendChild(chip);
+            });
+        } catch(err) { console.error("Database connectivity error:", err); }
+    }
+
+
+    function loadSavedChatContextToScreen(event, prompt, response, language) {
+        if (event.target.classList.contains('chip-trigger-btn')) return;
+        
+        chatBox.innerHTML = '';
+        document.getElementById('lang-selector').value = language;
+        applyLanguageLocalization();
+        appendMessage(prompt, 'user');
+        appendMessage(response, 'bot');
+        
+        if(window.innerWidth < 1024) toggleSidebar();
+    }
+
+   function openContextMenu(event, id, prompt, response) {
+        event.stopPropagation(); // Prevents clicking the row background instead
+        selectedChipId = id;
+        selectedChipData = { prompt: prompt, response: response };
+        
+        // Precise layout positioning right next to where your mouse clicked
+        chipContextPopover.style.top = `${event.clientY + 10}px`;
+        chipContextPopover.style.left = `${event.clientX - 130}px`;
+        chipContextPopover.style.display = 'block';
+    }
+
+   async function triggerItemDelete() {
+    if(!selectedChipId) return;
+    try {
+        const response = await fetch(`/history/delete/${selectedChipId}`, { method: 'DELETE' });
+        if(response.ok) {
+            fetchHistoryLogArchives();
+            chatBox.innerHTML = '';
+            chipContextPopover.style.display = 'none';
+        }
+    } catch(err) { console.error(err); }
+}
+    function startFreshNewChatSession() {
+        chatBox.innerHTML = '';
+        userInput.value = '';
+        previewDeck.innerHTML = '';
+        if(window.innerWidth < 1024) toggleSidebar();
+    }
+
+    function triggerShareModal() {
+        if(!selectedChipData) return;
+        chipContextPopover.style.display = 'none';
+        shareHubModal.style.display = 'flex';
+        
+        const shareText = encodeURIComponent(`Prompt: "${selectedChipData.prompt}"\nResponse: "${selectedChipData.response}"`);
+        // Generate a public link mock or direct reference pointing to this item instance ID
+        const generatedLink = `${window.location.origin}/share/context/${selectedChipId}`;
+        const shareUrl = encodeURIComponent(generatedLink);
+
+        // Populate your copy to clipboard interface field input text
+        document.getElementById('share-link-copy-field').value = generatedLink;
+
+        // Map live system intent configurations
+        document.getElementById('share-wa').href = `https://api.whatsapp.com/send?text=${shareText}%20${shareUrl}`;
+        document.getElementById('share-tg').href = `https://telegram.me/share/url?url=${shareUrl}&text=${shareText}`;
+        document.getElementById('share-x').href = `https://x.com/intent/tweet?text=${shareText}`;
+        document.getElementById('share-fb').href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+        document.getElementById('share-insta').href = `https://instagram.com`; 
+        document.getElementById('share-rd').href = `https://www.reddit.com/submit?title=AI_Insight&text=${shareText}%20${shareUrl}`;
+        document.getElementById('share-gmail').href = `https://mail.google.com/mail/?view=cm&fs=1&su=AI_Insight_Log&body=${shareText}%20${shareUrl}`;
+    }
+
+    function copyShareLinkToClipboard() {
+        const copyField = document.getElementById('share-link-copy-field');
+        copyField.select();
+        copyField.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyField.value);
+        alert("Link successfully captured to your system clipboard!");
+    }
+    function closeShareModal() { shareHubModal.style.display = 'none'; }
+
+   async function sendMessage() {
+        const text = userInput.value.trim();
+        const selectedLang = document.getElementById('lang-selector').value;
+        if (!text && !activeFile && attachedLinks.length === 0) return;
+
+        appendMessage(text || "[Attached Media Data]", 'user');
+        userInput.value = ''; previewDeck.innerHTML = '';
+        sendBtn.style.display = 'none'; stopBtn.style.display = 'inline-flex';
+        
+        // ⏳ Inject the animated loader layout component instead of raw text strings
+        const loaderHtml = `<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+        const loaderId = appendMessage(loaderHtml, 'bot');
+        // Convert plain text to HTML explicitly to render the dots properly
+        document.getElementById(loaderId).querySelector('.message').innerHTML = loaderHtml;
+        
+        abortController = new AbortController();
+        const formData = new FormData();
+        formData.append('message', text);
+        formData.append('language', selectedLang); 
+        if (activeFile) formData.append('file', activeFile);
+
+        try {
+            const response = await fetch('/chat', { method: 'POST', body: formData, signal: abortController.signal });
+            document.getElementById(loaderId).remove();
+
+            const streamingMsgId = appendMessage("", 'bot');
+            const streamingBubble = document.getElementById(streamingMsgId).querySelector('.message');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+
+            while (!done) {
+                const { value, done: readerDone } = await reader.read();
+                done = readerDone;
+                if (value) {
+                    streamingBubble.innerText += decoder.decode(value, { stream: !done });
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+            fetchHistoryLogArchives();
+
+        } catch (e) {
+            if (document.getElementById(loaderId)) document.getElementById(loaderId).remove();
+            if (e.name === 'AbortError') appendMessage("❌ Terminated.", 'bot');
+            else appendMessage("Connection drop.", 'bot');
+        } finally {
+            activeFile = null; attachedLinks = []; sendBtn.style.display = 'inline-flex'; stopBtn.style.display = 'none';
+        }
+    }
+
+   function appendMessage(text, sender) {
+        const uniqueId = 'msg-' + Math.random().toString(36).substr(2, 9);
+        const wrapper = document.createElement('div'); wrapper.classList.add('message-wrapper', sender.includes('user') ? 'user-wrapper' : 'bot-wrapper'); wrapper.id = uniqueId;
+        const msgDiv = document.createElement('div'); msgDiv.classList.add('message', sender.split(' ')[0]); msgDiv.innerText = text;
+        
+        // 📋 RESPONSE COPY ENGINE: Right-click or double-click copy trigger configuration
+        msgDiv.style.cursor = 'pointer';
+        msgDiv.title = 'Double click to copy this response text directly!';
+        msgDiv.addEventListener('dblclick', () => {
+            navigator.clipboard.writeText(msgDiv.innerText);
+            alert("Response block cleanly copied to your system clipboard!");
+        });
+
+        wrapper.appendChild(msgDiv); chatBox.appendChild(wrapper); chatBox.scrollTop = chatBox.scrollHeight; return uniqueId;
+    }
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>

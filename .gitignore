@@ -1,0 +1,19 @@
+# Secret API Keys & Config Environment Variables
+.env
+secret_key.txt
+
+# Local SQLite Database Instances
+*.db
+database.db
+
+# Virtual Environments
+myenv/
+venv/
+ENV/
+.venv/
+
+# Python Cache Files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
